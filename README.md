@@ -3,6 +3,10 @@
 [![CI](https://github.com/SuperagenticAI/metaharness/actions/workflows/ci.yml/badge.svg)](https://github.com/SuperagenticAI/metaharness/actions/workflows/ci.yml)
 [![Docs](https://github.com/SuperagenticAI/metaharness/actions/workflows/pages.yml/badge.svg)](https://github.com/SuperagenticAI/metaharness/actions/workflows/pages.yml)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-111111?logo=github&logoColor=white)](https://superagenticai.github.io/metaharness/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://github.com/SuperagenticAI/metaharness/blob/main/pyproject.toml)
+[![License](https://img.shields.io/github/license/SuperagenticAI/metaharness)](https://github.com/SuperagenticAI/metaharness/blob/main/LICENSE)
+[![Status](https://img.shields.io/badge/status-alpha-F59E0B)](https://github.com/SuperagenticAI/metaharness)
+[![Paper](https://img.shields.io/badge/paper-Meta%20Harness-B31B1B)](https://arxiv.org/pdf/2603.28052)
 
 `metaharness` is an open source Python library for optimizing executable harnesses around agentic coding systems.
 It is inspired by the [Meta Harness paper](https://arxiv.org/pdf/2603.28052) and is an unofficial open source implementation of the core ideas in that work.
