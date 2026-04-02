@@ -11,7 +11,31 @@ This page walks through the fastest path from a clean checkout to a real `metaha
 
 ## Install
 
-Use `uv` to create the project environment:
+Published package:
+
+- PyPI distribution: `superagentic-metaharness`
+- CLI command: `metaharness`
+- import package: `metaharness`
+
+Install the CLI from PyPI:
+
+```bash
+uv tool install superagentic-metaharness
+```
+
+Check the installed command:
+
+```bash
+metaharness --help
+```
+
+If you want to add the library to another Python project:
+
+```bash
+uv add superagentic-metaharness
+```
+
+If you are working from a source checkout of this repository, create the project environment with:
 
 ```bash
 uv sync

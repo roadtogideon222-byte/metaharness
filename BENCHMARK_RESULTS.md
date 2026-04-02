@@ -1,6 +1,9 @@
 # Benchmark Results
 
-These are the real provider runs currently captured in this repository.
+These are the real provider runs currently documented in this repository.
+All recorded runs below were executed through the Codex CLI path, either with hosted Codex or with Codex pointed at local Ollama models.
+The run directories themselves are local artifacts under `examples/*/runs/` and are gitignored.
+This file is the checked-in summary of those runs.
 
 ## `python_fixture_benchmark`
 
@@ -18,7 +21,7 @@ Winning runs changed the harness files:
 - `scripts/test.sh`
 - `scripts/validate.sh`
 
-Run directories:
+Local run directory names used for these runs:
 
 - `examples/python_fixture_benchmark/runs/hosted-codex-20260401`
 - `examples/python_fixture_benchmark/runs/ollama-20b-20260401`
@@ -39,13 +42,14 @@ Winning hosted run changed the harness files:
 - `scripts/test.sh`
 - `scripts/validate.sh`
 
-Run directories:
+Local run directory names used for these runs:
 
 - `examples/python_cli_benchmark/runs/hosted-codex-20260401`
 - `examples/python_cli_benchmark/runs/ollama-20b-20260401`
 
 ## Takeaways
 
+- The benchmark evidence documented in this repository is currently Codex-first. We have not documented an equivalent Claude Code or Opus result set here.
 - There is no `metaharness` product blocker for hosted Codex. The important requirement is using `--hosted` when a project config defaults to local Ollama.
 - On these benchmarks, hosted Codex was faster than local `gpt-oss:120b` and solved both tasks in a single proposal iteration.
 - On these same runs, local `gpt-oss:20b` hit the configured `240s` proposal timeout on both benchmarks and did not improve the baseline.

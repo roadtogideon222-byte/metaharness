@@ -12,6 +12,8 @@ Current status:
 - `GeminiCliBackend` exists as a scaffold and is not yet at parity with Codex
 
 The current package is Codex-first with an extensible backend interface.
+All real provider benchmark runs currently documented in this repository were executed through the Codex CLI path.
+That includes hosted Codex and local Ollama models used through Codex.
 
 ## Hosted Codex
 
@@ -67,6 +69,9 @@ Based on the recorded benchmark runs in this repository:
 | Hosted Codex | solved both real benchmarks in one proposal iteration | fastest high quality path so far |
 | Ollama `gpt-oss:20b` | timed out on both real benchmarks at `240s` | useful for very small smoke runs, not reliable enough for the current real benchmarks |
 | Ollama `gpt-oss:120b` | solved `python_fixture_benchmark` | slower than hosted Codex, but capable |
+
+This means the project's current public benchmark evidence is centered on Codex.
+Other coding-agent benchmark writeups may emphasize Claude Code or Opus, but those are not the provider paths currently documented in this repository.
 
 ## What To Use In Practice
 

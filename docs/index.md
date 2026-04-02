@@ -4,6 +4,7 @@
   <p>
     <code>metaharness</code> is an open source Python library for optimizing executable harnesses around agentic coding systems.
     It is inspired by the <a href="https://arxiv.org/pdf/2603.28052">Meta Harness paper</a> and is an unofficial open source implementation of the core ideas in that work.
+    The current implementation and benchmark evidence in this repository are centered on the Codex CLI path, including hosted Codex and Codex over local Ollama models.
     It treats the harness itself as the optimization target, not just the prompt.
     That includes instruction files, bootstrap scripts, validation scripts, test flows, routing logic, and other executable support code.
   </p>
@@ -30,6 +31,10 @@
   <div class="stat-card">
     <strong>Experiment runner included</strong>
     Batch runs, candidate ledgers, JSON output, and TSV exports are already part of the CLI.
+  </div>
+  <div class="stat-card">
+    <strong>Published on PyPI</strong>
+    Install the released CLI with <code>uv tool install superagentic-metaharness</code> and run <code>metaharness</code>.
   </div>
 </div>
 
@@ -155,6 +160,9 @@ The current package is strongest in a Codex-first setup.
 Hosted Codex is the most reliable current path for real benchmark runs in this repository.
 Local Codex over Ollama has also been exercised with `gpt-oss:20b` and `gpt-oss:120b`.
 </p>
+
+All real provider runs currently documented in this repository were produced through Codex.
+Other coding-agent benchmark writeups may emphasize Claude Code or Opus, but those are not the provider paths currently documented in this repository.
 
 Gemini exists as a backend scaffold, but it is not yet at parity with the Codex path.
 

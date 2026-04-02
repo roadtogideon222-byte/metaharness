@@ -3,6 +3,7 @@
 [![CI](https://github.com/SuperagenticAI/metaharness/actions/workflows/ci.yml/badge.svg)](https://github.com/SuperagenticAI/metaharness/actions/workflows/ci.yml)
 [![Docs](https://github.com/SuperagenticAI/metaharness/actions/workflows/pages.yml/badge.svg)](https://github.com/SuperagenticAI/metaharness/actions/workflows/pages.yml)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-111111?logo=github&logoColor=white)](https://superagenticai.github.io/metaharness/)
+[![PyPI](https://img.shields.io/pypi/v/superagentic-metaharness)](https://pypi.org/project/superagentic-metaharness/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://github.com/SuperagenticAI/metaharness/blob/main/pyproject.toml)
 [![License](https://img.shields.io/github/license/SuperagenticAI/metaharness)](https://github.com/SuperagenticAI/metaharness/blob/main/LICENSE)
 [![Status](https://img.shields.io/badge/status-alpha-F59E0B)](https://github.com/SuperagenticAI/metaharness)
@@ -10,6 +11,7 @@
 
 `metaharness` is an open source Python library for optimizing executable harnesses around agentic coding systems.
 It is inspired by the [Meta Harness paper](https://arxiv.org/pdf/2603.28052) and is an unofficial open source implementation of the core ideas in that work.
+The current implementation and benchmark evidence in this repository are centered on the Codex CLI path, including hosted Codex and Codex over local Ollama models.
 
 It is built for teams who want to improve the code and files around an agent workflow, not just the prompt.
 That includes instruction files, setup flows, validation scripts, test scripts, routing logic, and other executable support code.
@@ -48,7 +50,19 @@ The result is a practical, inspectable workflow for improving real harnesses ins
 
 ## Quickstart
 
-Install the project:
+Install the published CLI from PyPI:
+
+```bash
+uv tool install superagentic-metaharness
+```
+
+Check the command:
+
+```bash
+metaharness --help
+```
+
+If you want to run the built-in examples in this repository, use a source checkout:
 
 ```bash
 uv sync
@@ -103,7 +117,7 @@ The repository currently includes:
 - local Codex over Ollama runs with `gpt-oss:20b` and `gpt-oss:120b`
 - a docs site published from GitHub Actions
 
-Current recorded experiments in this repository show:
+Current documented experiments in this repository show:
 
 - hosted Codex solves both real benchmarks in one proposal iteration
 - local `gpt-oss:120b` solves `python_fixture_benchmark`
@@ -117,9 +131,14 @@ Detailed experiment records:
 
 ## Provider Status
 
+- Codex is the main validated harness path in this repository today
 - hosted Codex is the strongest current path for real runs
 - local Codex over Ollama works and has been exercised with `gpt-oss:20b` and `gpt-oss:120b`
 - Gemini exists as a scaffolded backend and is not yet at parity with Codex
+
+All real provider results currently documented in this repository were produced through the Codex CLI path.
+That includes both hosted Codex runs and local Ollama runs driven through Codex with `gpt-oss` models.
+Other coding-agent evaluations in the wider ecosystem often emphasize Claude Code and Opus, but this repository's current benchmark evidence is Codex-first.
 
 ## Documentation
 
@@ -133,7 +152,37 @@ Detailed experiment records:
 
 ## Installation
 
-Project setup:
+Published package:
+
+- PyPI distribution: `superagentic-metaharness`
+- CLI command: `metaharness`
+- import package: `metaharness`
+
+Install the CLI with `uv`:
+
+```bash
+uv tool install superagentic-metaharness
+```
+
+Upgrade it later:
+
+```bash
+uv tool upgrade superagentic-metaharness
+```
+
+Install it into a Python project dependency set:
+
+```bash
+uv add superagentic-metaharness
+```
+
+Install with `pip`:
+
+```bash
+pip install superagentic-metaharness
+```
+
+Source checkout setup:
 
 ```bash
 uv sync
