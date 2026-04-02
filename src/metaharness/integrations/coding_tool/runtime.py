@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 from typing import Any
 from pathlib import Path
@@ -95,9 +97,10 @@ class CodingToolEvaluator:
         workspace: Path,
         task: CodingToolTask,
     ) -> tuple[bool, dict[str, str | int | float]]:
+        shell = _resolve_command_shell()
         try:
             completed = subprocess.run(
-                ["/bin/zsh", "-lc", str(task.command)],
+                [shell, "-lc", str(task.command)],
                 cwd=workspace,
                 text=True,
                 capture_output=True,
@@ -130,6 +133,27 @@ class CodingToolEvaluator:
             "weight": task.weight,
             "returncode": completed.returncode,
         }
+
+
+def _resolve_command_shell() -> str:
+    env_shell = _resolve_executable(os.environ.get("SHELL"))
+    if env_shell:
+        return env_shell
+
+    for candidate in ("bash", "zsh", "sh"):
+        resolved = _resolve_executable(candidate)
+        if resolved:
+            return resolved
+
+    return "/bin/sh"
+
+
+def _resolve_executable(candidate: str | None) -> str | None:
+    if not candidate:
+        return None
+    if os.path.isabs(candidate):
+        return candidate if os.path.exists(candidate) else None
+    return shutil.which(candidate)
 
 
 def resolve_backend_options(

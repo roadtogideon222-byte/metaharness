@@ -1,9 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from metaharness.integrations.coding_tool.config import load_coding_tool_project
-from metaharness.integrations.coding_tool.runtime import make_backend
+from metaharness.integrations.coding_tool.runtime import _resolve_command_shell, make_backend
 
 
 class CodingToolConfigTests(unittest.TestCase):
@@ -97,6 +98,16 @@ class CodingToolConfigTests(unittest.TestCase):
 
             project = load_coding_tool_project(root)
             self.assertEqual(["AGENTS.md", "scripts"], project.allowed_write_paths)
+
+    def test_resolve_command_shell_falls_back_when_zsh_is_unavailable(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            with patch("shutil.which") as which:
+                which.side_effect = lambda name: {
+                    "bash": "/usr/bin/bash",
+                    "zsh": None,
+                    "sh": "/usr/bin/sh",
+                }.get(name)
+                self.assertEqual("/usr/bin/bash", _resolve_command_shell())
 
 
 if __name__ == "__main__":
