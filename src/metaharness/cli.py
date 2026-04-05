@@ -787,7 +787,7 @@ def _cmd_traits_trend(args: argparse.Namespace) -> int:
 
     if args.trait:
         last = history.latest()
-        score = last.trait_scores.get(args.trait) if last else None
+        score = next((ts.score for ts in (last.traits or []) if ts.trait_id == args.trait), None)
         trend = history.decay_rate(args.trait, args.window)
         print(f"Trait: {args.trait}")
         print(f"  Latest: {score:.3f}" if score is not None else "  Latest: N/A")
@@ -801,7 +801,9 @@ def _cmd_traits_trend(args: argparse.Namespace) -> int:
         last = history.latest()
         print(f"Trait Trends — {len(history.snapshots)} snapshots")
         print("=" * 50)
-        for trait_id, score in last.trait_scores.items():
+        for ts in (last.traits or []):
+            trait_id = ts.trait_id
+            score = ts.score
             t = history.decay_rate(trait_id, args.window)
             print(f"\n  {trait_id}: latest={score:.3f}  decay/gen={t}")
     return 0
