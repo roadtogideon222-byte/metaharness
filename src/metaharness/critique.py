@@ -22,6 +22,7 @@ Flow:
 """
 from __future__ import annotations
 
+import enum
 import json
 import re
 from dataclasses import asdict, dataclass, field
@@ -103,9 +104,9 @@ class CritiqueResult:
     def to_dict(self) -> dict[str, Any]:
         return {
             "veto_passed": self.veto_passed,
-            "tier1_violations": [asdict(v) for v in self.tier1_violations],
-            "tier2_flags": [asdict(f) for f in self.tier2_flags],
-            "tier3_metrics": [asdict(m) for m in self.tier3_metrics],
+            "tier1_violations": [_dataclass_to_dict(v) for v in self.tier1_violations],
+            "tier2_flags": [_dataclass_to_dict(f) for f in self.tier2_flags],
+            "tier3_metrics": [_dataclass_to_dict(m) for m in self.tier3_metrics],
             "revision_needed": self.revision_needed,
             "revised_genome": self.revised_genome,
             "revision_rationale": self.revision_rationale,
@@ -114,6 +115,32 @@ class CritiqueResult:
             "critique_passed_at": self.critique_passed_at,
             "iteration": self.iteration,
         }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JSON serialization helper
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _dataclass_to_dict(obj: Any) -> Any:
+    """
+    Serialize a dataclass instance to a dict, converting enum values to strings.
+    Fixes: dataclasses.asdict() does not handle enum serialization.
+    Uses __dataclass_fields__ to detect dataclass instances without
+    calling is_dataclass() from the module namespace.
+    """
+    if isinstance(obj, enum.Enum):
+        return obj.value
+    if getattr(obj, '__dataclass_fields__', None) is not None:
+        result = {}
+        for key in obj.__dataclass_fields__:
+            value = getattr(obj, key)
+            result[key] = _dataclass_to_dict(value)
+        return result
+    if isinstance(obj, dict):
+        return {k: _dataclass_to_dict(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_dataclass_to_dict(item) for item in obj]
+    return obj
 
 
 # ─────────────────────────────────────────────────────────────────────────────
