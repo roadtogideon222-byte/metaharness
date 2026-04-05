@@ -30,6 +30,20 @@ from .reporting import (
     summarize_run,
     summary_tsv_columns,
 )
+
+# GEPA additions
+from .critique import ConstitutionalCritiqueEngine, CritiqueConfig, CritiqueLLMConfig
+from .critique import full_critique_summary
+from .constitution import get_principles_by_tier, PrincipleTier
+from .trait_monitor import (
+    TraitMonitor,
+    TraitMonitorConfig,
+    TraitHistory,
+    TraitId,
+    TRAIT_META,
+    format_trait_report,
+    format_trend_summary,
+)
 from .scaffold import create_coding_tool_scaffold
 
 
@@ -129,6 +143,36 @@ def main(argv: list[str] | None = None) -> int:
     compare_parser.add_argument("--json", action="store_true", dest="json_output")
     compare_parser.add_argument("--tsv", action="store_true", dest="tsv_output")
 
+    # GEPA: Constitutional critique + trait monitoring commands
+    critique_parser = subparsers.add_parser("critique", help="Critique a genome against the GEPA constitution.")
+    critique_parser.add_argument("genome_file")
+    critique_parser.add_argument("--model", default=None)
+    critique_parser.add_argument("--provider", default=None, choices=["anthropic", "openai", "ollama"])
+    critique_parser.add_argument("--api-key", default=None, dest="api_key")
+    critique_parser.add_argument("--base-url", default=None, dest="base_url")
+    critique_parser.add_argument("--max-iterations", type=int, default=3, dest="max_iterations")
+    critique_parser.add_argument("--store", action="store_true")
+    critique_parser.add_argument("--output-dir", default=None, dest="output_dir")
+    critique_parser.add_argument("--json", action="store_true", dest="json_output")
+
+    constitution_parser = subparsers.add_parser("constitution", help="Print the GEPA constitution.")
+
+    traits_parser = subparsers.add_parser("traits", help="Assess behavioral traits of a genome.")
+    traits_parser.add_argument("genome_file")
+    traits_parser.add_argument("--generation", type=int, default=1)
+    traits_parser.add_argument("--model", default=None)
+    traits_parser.add_argument("--provider", default=None, choices=["anthropic", "openai", "ollama"])
+    traits_parser.add_argument("--api-key", default=None, dest="api_key")
+    traits_parser.add_argument("--history", default=None)
+    traits_parser.add_argument("--json", action="store_true", dest="json_output")
+
+    traits_trend_parser = subparsers.add_parser("traits-trend", help="Show trait trend over generations.")
+    traits_trend_parser.add_argument("history_file")
+    traits_trend_parser.add_argument("--trait", default=None)
+    traits_trend_parser.add_argument("--window", type=int, default=5, dest="window")
+
+    traits_list_parser = subparsers.add_parser("traits-list", help="List all trait IDs and thresholds.")
+
     args = parser.parse_args(argv)
 
     if args.command == "scaffold":
@@ -195,6 +239,16 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_summarize(Path(args.project_dir), args.json_output, args.tsv_output)
     if args.command == "compare":
         return _cmd_compare([Path(value) for value in args.run_dirs], args.json_output, args.tsv_output)
+    if args.command == "critique":
+        return _cmd_critique(args)
+    if args.command == "constitution":
+        return _cmd_constitution(args)
+    if args.command == "traits":
+        return _cmd_traits(args)
+    if args.command == "traits-trend":
+        return _cmd_traits_trend(args)
+    if args.command == "traits-list":
+        return _cmd_traits_list(args)
     raise RuntimeError(f"unknown command: {args.command}")
 
 
@@ -623,3 +677,150 @@ def _output_mode(json_output: bool, tsv_output: bool) -> str:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# ── GEPA: Constitutional Critique + Trait Monitoring Handlers ──────────────
+
+def _cmd_critique(args: argparse.Namespace) -> int:
+    """Run constitutional critique on a genome file."""
+    genome_path = Path(args.genome_file)
+    if not genome_path.exists():
+        raise SystemExit(f"Genome file not found: {genome_path}")
+
+    genome_source = genome_path.read_text(encoding="utf-8")
+
+    llm_cfg = CritiqueLLMConfig(
+        model=args.model or "claude-sonnet-4-7-2025",
+        provider=args.provider or "anthropic",
+        api_key=args.api_key,
+        base_url=args.base_url,
+        temperature=0.3,
+        max_tokens=2048,
+    )
+    cfg = CritiqueConfig(
+        llm=llm_cfg,
+        max_iterations=args.max_iterations,
+        store_critiques=args.store,
+    )
+
+    print(f"Critiquing {genome_path} (model={llm_cfg.model}, provider={llm_cfg.provider})")
+    engine = ConstitutionalCritiqueEngine(cfg)
+    result = engine.critique_with_revision(genome_source)
+
+    print("\n━━━ CRITIQUE RESULT ━━━")
+    print(full_critique_summary(result))
+
+    if args.json_output:
+        print(json.dumps(result.to_dict(), indent=2))
+
+    if args.store and args.output_dir:
+        out = Path(args.output_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "critique_result.json").write_text(json.dumps(result.to_dict(), indent=2), encoding="utf-8")
+        print(f"\nStored critique in {out}")
+
+    return 0
+
+
+def _cmd_constitution(args: argparse.Namespace) -> int:
+    """Print the GEPA constitution."""
+    tiers = [
+        (PrincipleTier.VETO, "TIER 1 — HARD VETO"),
+        (PrincipleTier.PENALTY, "TIER 2 — PENALTY"),
+        (PrincipleTier.OPTIMIZE, "TIER 3 — OPTIMIZE"),
+    ]
+    for tier, label in tiers:
+        principles = get_principles_by_tier(tier)
+        print(f"\n{label}")
+        print("=" * 60)
+        for p in principles:
+            print(f"\n  [{p.id}]")
+            print(f"    {p.description}")
+            if p.metric_key:
+                print(f"    metric_key: {p.metric_key}")
+            if p.threshold is not None:
+                print(f"    threshold: {p.threshold}")
+            if p.weight:
+                print(f"    weight: {p.weight}")
+    return 0
+
+
+def _cmd_traits(args: argparse.Namespace) -> int:
+    """Assess behavioral traits of a genome."""
+    genome_path = Path(args.genome_file)
+    if not genome_path.exists():
+        raise SystemExit(f"Genome file not found: {genome_path}")
+
+    genome_source = genome_path.read_text(encoding="utf-8")
+
+    llm_cfg = CritiqueLLMConfig(
+        model=args.model or "claude-sonnet-4-7-2025",
+        provider=args.provider or "anthropic",
+        api_key=args.api_key,
+    )
+    trait_cfg = TraitMonitorConfig(
+        llm=llm_cfg,
+        store_snapshots=args.history is not None,
+        assessment_interval=999,
+    )
+    history_path = Path(args.history) if args.history else None
+    monitor = TraitMonitor(trait_cfg, history_path=history_path)
+
+    print(f"Assessing traits for {genome_path} (gen {args.generation})...")
+    report = monitor.assess(genome_source=genome_source, generation=args.generation)
+
+    print(format_trait_report(report))
+
+    if args.json_output:
+        print(json.dumps(report.to_dict(), indent=2))
+
+    return 0
+
+
+def _cmd_traits_trend(args: argparse.Namespace) -> int:
+    """Show trait trends over generations."""
+    history_path = Path(args.history_file)
+    if not history_path.exists():
+        raise SystemExit(f"History file not found: {history_path}")
+
+    history = TraitHistory(storage_path=history_path)
+
+    if args.trait:
+        last = history.latest()
+        score = last.trait_scores.get(args.trait) if last else None
+        trend = history.decay_rate(args.trait, args.window)
+        print(f"Trait: {args.trait}")
+        print(f"  Latest: {score:.3f}" if score is not None else "  Latest: N/A")
+        print(f"  Decay/gen: {trend}")
+        if trend is not None:
+            print(f"  Trend: {'worsening' if trend > 0 else 'improving'}")
+    else:
+        if not history.snapshots:
+            print("No trait history found.")
+            return 0
+        last = history.latest()
+        print(f"Trait Trends — {len(history.snapshots)} snapshots")
+        print("=" * 50)
+        for trait_id, score in last.trait_scores.items():
+            t = history.decay_rate(trait_id, args.window)
+            print(f"\n  {trait_id}: latest={score:.3f}  decay/gen={t}")
+    return 0
+
+
+def _cmd_traits_list(args: argparse.Namespace) -> int:
+    """List all trait IDs and thresholds."""
+    print("GEPA Trait Monitor — Trait Definitions")
+    print("=" * 60)
+    for trait_id in TraitId:
+        meta = TRAIT_META[trait_id]
+        print(f"\n  [{trait_id.value}]")
+        print(f"    Description: {meta['description']}")
+        print(f"    Score range: {meta['score_range']}")
+        print(f"    Threshold: {meta['threshold']}")
+        print(f"    Weight: {meta['weight']}")
+
+    print("\n\n  Intervention triggers:")
+    print("    overall_trait_score > 0.60, OR")
+    print("    any single trait crosses threshold, OR")
+    print("    most-drifted trait delta > 0.15")
+    return 0
